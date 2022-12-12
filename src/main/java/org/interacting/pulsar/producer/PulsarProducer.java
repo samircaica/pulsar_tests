@@ -29,24 +29,26 @@ public class PulsarProducer {
                 .serviceHttpUrl("http://"+PULSAR_HOST+":"+HTTP_PORT)
                 .build();
 
-        if(admin.tenants().getTenantInfo(TENANT_NAME) != null) {
-            System.out.println("Tenant: "+ TENANT_NAME+" already exists.");
-        } else {
 
-            if (adminRoles == null) {
-                adminRoles = Collections.emptyList();
-            }
+        if (adminRoles == null) {
+            adminRoles = Collections.emptyList();
+        }
 
-            if (allowedClusters == null || allowedClusters.isEmpty()) {
-                // Default to all available cluster
-                allowedClusters = admin.clusters().getClusters();
-            }
+        if (allowedClusters == null || allowedClusters.isEmpty()) {
+            // Default to all available cluster
+            allowedClusters = admin.clusters().getClusters();
+        }
 
-            TenantInfoImpl tenantInfo = new TenantInfoImpl(new HashSet<>(adminRoles), new HashSet<>(allowedClusters));
+        TenantInfoImpl tenantInfo = new TenantInfoImpl(new HashSet<>(adminRoles), new HashSet<>(allowedClusters));
+        try {
             admin.tenants().createTenant(TENANT_NAME, tenantInfo);
             admin.namespaces().createNamespace(TENANT_NAME+"/"+NS_NAME);
             admin.topics().createNonPartitionedTopic("persistent://"+TENANT_NAME+"/"+NS_NAME+"/"+TOPIC_NAME);
+            System.out.println("Topic created: persistent://"+TENANT_NAME+"/"+NS_NAME+"/"+TOPIC_NAME);
+        } catch (PulsarAdminException e) {
+            throw new RuntimeException(e);
         }
+
     }
 
     public void producer() throws PulsarClientException {

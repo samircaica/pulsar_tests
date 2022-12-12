@@ -11,6 +11,8 @@ public class PulsarExecutor {
         PulsarProducer pProducer = new PulsarProducer();
 
         pProducer.createTopic();
+
+        System.exit(0);
     }
 
 }
