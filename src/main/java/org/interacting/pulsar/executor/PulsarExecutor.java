@@ -10,7 +10,30 @@ public class PulsarExecutor {
 
         PulsarProducer pProducer = new PulsarProducer();
 
-        pProducer.createTopic();
+        try {
+            pProducer.createFullTopic();
+        } catch (PulsarAdminException e) {
+            System.out.println("Alert!: "+e.getHttpError()+" Status code: "+e.getStatusCode());
+            switch (e.getStatusCode()) {
+                case 409:
+                    try {
+                        pProducer.createNamespace();
+                        pProducer.createTopic();
+                    } catch (PulsarAdminException e1) {
+                        System.out.println("Alert!: " + e1.getHttpError() + " Status code: " + e1.getStatusCode());
+                        switch (e1.getStatusCode()) {
+                            case 409:
+                                try {
+                                    pProducer.createTopic();
+                                } catch (PulsarAdminException e2) {
+                                    System.out.println("Alert!: " + e2.getHttpError() + " Status code: " + e2.getStatusCode());
+                                }
+                        }
+                    }
+            }
+        }
+
+
 
         System.exit(0);
     }

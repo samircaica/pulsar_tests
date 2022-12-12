@@ -5,6 +5,7 @@ import org.apache.pulsar.client.admin.PulsarAdminException;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.common.policies.data.TenantInfoImpl;
+import org.bouncycastle.tsp.TSPUtil;
 
 
 import java.util.Collections;
@@ -24,8 +25,8 @@ public class PulsarProducer {
     private static String SERVICE_PORT = "6650";
 
 
-    public void createTopic() throws PulsarClientException, PulsarAdminException {
-        admin = PulsarAdmin.builder()
+    public void createFullTopic() throws PulsarClientException, PulsarAdminException {
+        this.admin = PulsarAdmin.builder()
                 .serviceHttpUrl("http://"+PULSAR_HOST+":"+HTTP_PORT)
                 .build();
 
@@ -40,17 +41,26 @@ public class PulsarProducer {
         }
 
         TenantInfoImpl tenantInfo = new TenantInfoImpl(new HashSet<>(adminRoles), new HashSet<>(allowedClusters));
-        try {
-            admin.tenants().createTenant(TENANT_NAME, tenantInfo);
-            admin.namespaces().createNamespace(TENANT_NAME+"/"+NS_NAME);
-            admin.topics().createNonPartitionedTopic("persistent://"+TENANT_NAME+"/"+NS_NAME+"/"+TOPIC_NAME);
-            System.out.println("Topic created: persistent://"+TENANT_NAME+"/"+NS_NAME+"/"+TOPIC_NAME);
-        } catch (PulsarAdminException e) {
-            throw new RuntimeException(e);
-        }
+
+        createTenant(tenantInfo);
+        createNamespace();
+        createTopic();
 
     }
 
+    public void createTenant(TenantInfoImpl tenantInfo) throws PulsarAdminException {
+        admin.tenants().createTenant(TENANT_NAME, tenantInfo);
+    }
+
+    public void createNamespace() throws PulsarAdminException {
+        admin.namespaces().createNamespace(TENANT_NAME+"/"+NS_NAME);
+        System.out.println("Namespace created: "+TENANT_NAME+"/"+NS_NAME);
+    }
+
+    public void createTopic() throws PulsarAdminException {
+        admin.topics().createNonPartitionedTopic("persistent://"+TENANT_NAME+"/"+NS_NAME+"/"+TOPIC_NAME);
+        System.out.println("Topic created: persistent://"+TENANT_NAME+"/"+NS_NAME+"/"+TOPIC_NAME);
+    }
     public void producer() throws PulsarClientException {
         client = PulsarClient.builder()
                 .serviceUrl("pulsar://"+PULSAR_HOST+":"+SERVICE_PORT)
