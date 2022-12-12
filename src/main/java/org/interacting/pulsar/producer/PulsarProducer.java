@@ -4,26 +4,24 @@ import org.apache.pulsar.client.admin.PulsarAdmin;
 import org.apache.pulsar.client.admin.PulsarAdminException;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
-import org.apache.pulsar.common.policies.data.TenantInfo;
 import org.apache.pulsar.common.policies.data.TenantInfoImpl;
 
-import java.util.ArrayList;
+
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class PulsarProducer {
-    PulsarClient client;
-    PulsarAdmin admin;
+    private PulsarClient client;
+    private PulsarAdmin admin;
 
     private java.util.List<String> adminRoles = null;
     private java.util.List<String> allowedClusters = null;
-    private String TENANT_NAME = "manning";
-    private String NS_NAME = "chapter03";
-    private String PULSAR_HOST = "localhost";
-    private String HTTP_PORT = "8080";
-    private String SERVICE_PORT = "6650";
+    private static String TENANT_NAME = "manning";
+    private static String NS_NAME = "chapter03";
+    private static String TOPIC_NAME = "example-topic";
+    private static String PULSAR_HOST = "localhost";
+    private static String HTTP_PORT = "8080";
+    private static String SERVICE_PORT = "6650";
 
 
     public void createTopic() throws PulsarClientException, PulsarAdminException {
@@ -47,6 +45,7 @@ public class PulsarProducer {
             TenantInfoImpl tenantInfo = new TenantInfoImpl(new HashSet<>(adminRoles), new HashSet<>(allowedClusters));
             admin.tenants().createTenant(TENANT_NAME, tenantInfo);
             admin.namespaces().createNamespace(TENANT_NAME+"/"+NS_NAME);
+            admin.topics().createNonPartitionedTopic("persistent://"+TENANT_NAME+"/"+NS_NAME+"/"+TOPIC_NAME);
         }
     }
 
